@@ -1,0 +1,12 @@
+ARCHIVO CUSTODES
+
+La web contiene las 27 fotos facilitadas y un índice visual por unidad, destacamento o vehículo.
+
+Para abrirla:
+1. Inicia el servidor local desde la carpeta del proyecto con Node.js y el archivo server.js.
+2. Abre http://127.0.0.1:8765 en el navegador.
+3. Pulsa «Reconocer texto» para pasar OCR a las fotos pendientes, o abre una foto y pulsa «Pasar OCR».
+
+El OCR en inglés usa Tesseract.js y se procesa en el navegador. Necesita conexión a Internet para cargar la biblioteca y el modelo la primera vez; las fotos no se envían al servicio. El texto reconocido o corregido se guarda en el almacenamiento local de ese navegador.
+
+Las reglas y números deben comprobarse en la foto original: la perspectiva, el brillo y el diseño de las páginas pueden provocar errores de OCR.

@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#111116">
+  <title>Fichas · Archivo Custodes</title><link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="fichas.css">
+</head>
+<body>
+  <header class="topbar"><a class="brand" href="index.html"><span class="brand-mark">✦</span><span>ARCHIVO <b>CUSTODES</b></span></a><nav class="top-nav"><a href="fichas.html">Fichas</a><a class="active" href="destacamentos.html">Destacamentos</a><a href="index.html">Fotos + OCR</a></nav><div class="top-meta"><span class="live-dot"></span> Catálogo de consulta</div></header>
+  <main>
+    <section class="intro"><div class="eyebrow">ADEPTUS CUSTODES <span>·</span> FICHAS DE UNIDAD</div><h1>Datos de <em>campo</em></h1><p>Perfiles de atributos, armas, habilidades y composición transcritos de tus fotos. Abre una ficha para ver la referencia y el OCR completo de la página.</p><div class="metrics"><strong id="unitCount"></strong><span>fichas</span><i></i><a class="source-link" href="index.html">Consultar las 27 fotos + OCR</a></div></section>
+     <section class="workspace"><div class="controls"><label class="searchbox"><span aria-hidden="true">⌕</span><input id="unitSearch" type="search" placeholder="Buscar unidad, arma o habilidad…" autocomplete="off"><kbd>/</kbd></label><select id="unitCategory" aria-label="Filtrar por categoría"><option value="all">Todas las categorías</option><option value="Infantería">Infantería</option><option value="Montada">Montadas</option><option value="Vehículo">Vehículos</option><option value="Hermanas del Silencio">Hermanas del Silencio</option></select></div><div class="results-line"><span id="unitResults"></span><span>PERFILES DE LAS FOTOS FACILITADAS</span></div><div class="unit-grid" id="unitGrid"></div><div class="empty" id="unitEmpty" hidden><span>⌕</span><b>No hay resultados</b><p>Prueba con otro nombre, arma o regla.</p></div></section>
+  </main>
+  <footer><span>ARCHIVO PERSONAL · CUSTODES</span><span>Comprueba cada dato con la foto enlazada: el OCR puede confundir algunos caracteres.</span></footer>
+  <dialog id="sheetDialog" class="sheet-dialog"><div class="sheet-scroll" id="sheetContent"></div></dialog>
+  <script src="fichas.js"></script>
+</body>
+</html>

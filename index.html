@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111116">
+  <title>Archivo Custodes · Consulta de imágenes</title>
+  <link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="nav.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="Archivo Custodes, inicio"><span class="brand-mark">✦</span><span>ARCHIVO <b>CUSTODES</b></span></a>
+    <nav class="top-nav"><a href="fichas.html">Fichas de unidad</a><a href="destacamentos.html">Destacamentos</a><a class="active" href="index.html">Fotos + OCR</a></nav><div class="top-meta"><span class="live-dot"></span> Biblioteca local <span class="meta-divider">/</span> Warhammer 40,000</div>
+  </header>
+  <main>
+    <section class="intro">
+      <div class="eyebrow">GUARDIANES DEL TRONO DORADO <span>·</span> ARCHIVO FOTOGRÁFICO</div>
+      <h1>Consulta tus <em>fichas</em></h1>
+      <p>Busca unidades, armas y reglas entre las fotos. El OCR se procesa en este navegador y puedes corregir o copiar el texto reconocido.</p>
+      <div class="metrics"><strong id="totalCount">27</strong><span>fotografías</span><i></i><strong id="ocrCount">0</strong><span>con OCR guardado</span></div>
+    </section>
+    <section class="workspace" aria-label="Biblioteca de imágenes">
+      <div class="controls">
+        <label class="searchbox"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Buscar unidades, armas o reglas…" autocomplete="off"><kbd>/</kbd></label>
+        <select id="category" aria-label="Filtrar por categoría"><option value="all">Todas las categorías</option><option value="Unidades">Unidades</option><option value="Destacamentos">Destacamentos</option><option value="Vehículos">Vehículos</option><option value="Hermanas del Silencio">Hermanas del Silencio</option></select>
+        <button class="ocr-button" id="ocrAll"><span>◎</span> Reconocer texto</button>
+      </div>
+      <div class="progress-wrap" id="progressWrap" hidden><div class="progress-label"><span id="progressText">Preparando OCR…</span><span id="progressPct">0%</span></div><div class="progress"><span id="progressBar"></span></div></div>
+      <div class="results-line"><span id="resultCount">27 resultados</span><span>ORDEN: ARCHIVO ORIGINAL</span></div>
+      <div id="cards" class="cards"></div>
+      <div id="empty" class="empty" hidden><span>⌕</span><b>No hay resultados</b><p>Prueba otro término o cambia la categoría.</p></div>
+    </section>
+  </main>
+  <footer><span>ARCHIVO PERSONAL · 30 SEP 2026</span><span>El OCR es automático; comprueba los números y perfiles con la foto original.</span></footer>
+  <dialog id="viewer" class="viewer">
+    <div class="viewer-head"><div><div class="eyebrow" id="viewerCategory"></div><h2 id="viewerTitle"></h2></div><button id="closeViewer" class="icon-button" aria-label="Cerrar">×</button></div>
+    <div class="viewer-body"><div class="image-stage"><img id="viewerImage" alt=""><a id="openOriginal" target="_blank" rel="noreferrer">Abrir imagen completa</a></div><div class="text-stage"><div class="text-head"><h3>Texto reconocido</h3><div><button id="runOne" class="small-button">Pasar OCR</button><button id="copyText" class="small-button">Copiar</button></div></div><textarea id="ocrText" placeholder="Pulsa “Pasar OCR” para reconocer el texto de esta foto. El proceso se ejecuta aquí en el navegador." spellcheck="false"></textarea><p class="privacy-note">El reconocimiento usa Tesseract.js desde CDN y procesa la foto en tu dispositivo. El texto editado se guarda en este navegador.</p></div></div>
+  </dialog>
+  <script src="app.js"></script>
+</body>
+</html>
