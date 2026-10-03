@@ -5,3 +5,6 @@
 .det-command dd{margin:5px 0 0;font-size:12px;line-height:1.45;font-weight:600;color:#f3d39c;overflow-wrap:anywhere}
 .detachment-dialog .det-command{grid-template-columns:100px minmax(0,1fr);margin-top:16px}
 .detachment-dialog .det-command dd{font-size:15px}
+.enhancement-points{flex-shrink:0;border:1px solid #8a6b43;border-radius:3px;padding:3px 7px;color:#f3d39c;background:#2c251d;font-size:11px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.enhancement-points.is-pending{flex-shrink:1;color:#b9b1bd;border-color:#49414d;background:#252229;white-space:normal;text-align:right;font-size:10px}
+.det-entry .enhancement-note{color:#b9b1bd;font-size:10px}
