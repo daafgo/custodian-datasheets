@@ -22,10 +22,10 @@ Los resúmenes y transcripciones sirven como índice de consulta. Comprueba las 
 
 ## Costes en puntos
 
-Las tarjetas y las fichas muestran los costes de la tabla reenviada «Unit | Rumored Points | Notes», facilitada el 2 de octubre de 2026. Son **rumores sin confirmación oficial**. Los datos se mantienen en `unit-points.js`, separados de los perfiles transcritos de las fotos.
+Los costes proceden de la tabla de puntos confirmados facilitada el 3 de octubre de 2026, que sustituye a la tabla de rumores anterior. Los datos se mantienen separados de las reglas: `unit-points.js` contiene las unidades y `enhancement-points.js` las mejoras por destacamento.
 
-- Wardens y Allarus muestran los costes para 2 y 3 miniaturas; Shield-Captain distingue base de escudo y espada.
-- Aquilon conserva ambos valores (285 / 275), con la atribución provisional de 275 a Talons. Venatari conserva el coste genérico con una nota por variante.
-- Prosecutors solo tiene coste para 4 miniaturas. No se extrapolan otros tamaños.
-- Knight-Centura y Vigilators muestran el incremento genérico de +5 pts; su total permanece pendiente porque no se proporciona una base.
-- Las unidades ausentes de la tabla muestran «Puntos por confirmar». No se añaden fichas nuevas para unidades que no están en el catálogo.
+- Las tarjetas muestran el coste de la primera unidad. Cada ficha incluye una tabla con los costes de la primera, segunda y tercera unidad, separados por tamaño y equipo. N/A se muestra como «No disponible».
+- Psykana Rhino incluye también 80 puntos para la cuarta unidad y siguientes. No se extrapolan costes ni tamaños ausentes de la fuente.
+- Vertus Praetors, Gyrfalcon Jetbike Sodality, Witchseekers y Psykana Rhino tienen tablas de costes al final de Fichas, con los mismos filtros de búsqueda y categoría; aún no tienen perfiles de reglas en el catálogo.
+- Las 29 mejoras de la tabla muestran su coste en puntos dentro del destacamento correspondiente, separado de los CP de las estratagemas y los DP del destacamento.
+- Fierce Conqueror aparece en la tabla con 20 puntos, pero su regla está pendiente de transcripción. Se conserva Leonine Ferocity con su regla previa y «Puntos por confirmar» porque no figura en la tabla; no se presupone que ambas mejoras sean equivalentes.
