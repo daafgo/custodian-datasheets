@@ -1,61 +1,75 @@
-// Fuente: tabla reenviada «Unit | Rumored Points | Notes», facilitada el 02/10/2026.
-// Todos los valores son rumores. No se extrapolan tamaños ni costes no indicados.
+// Fuente: tabla de puntos confirmados facilitada el 03/10/2026.
+// points: [First, Second, Third]. null conserva N/A; no se extrapolan tamaños.
 const UNIT_POINTS = {
-  'Shield-Captain (Allarus)': {options: [{points: 195}]},
-  'Custodian Guard': {options: [{points: 250}]},
-  'Custodian Wardens': {options: [{points: 200, models: 2}, {points: 290, models: 3}]},
-  'Shield-Captain': {options: [{points: 185, label: 'Base'}, {points: 190, label: 'Escudo y espada'}]},
-  'Aquilon Terminators · Gauntlets': {
-    status: 'uncertain',
-    options: [{points: 285, label: 'Valor comunicado'}, {points: 275, label: 'Alternativa atribuida a Talons'}],
-    note: 'La tabla recoge 285 / 275 pts para Aquilon Custodians y atribuye provisionalmente 275 a Talons. No confirma el reparto entre las dos fichas.'
-  },
-  'Aquilon Terminators · Talons': {
-    status: 'uncertain',
-    options: [{points: 285, label: 'Valor comunicado'}, {points: 275, label: 'Alternativa atribuida a Talons'}],
-    note: 'La tabla recoge 285 / 275 pts para Aquilon Custodians y atribuye provisionalmente 275 a Talons. No confirma el reparto entre las dos fichas.'
-  },
-  'Venatari · Kinetic Destroyers': {
-    status: 'uncertain',
-    options: [{points: 270}],
-    note: 'Coste genérico de Venatari Custodians. La tabla no distingue Kinetic Destroyers de Verutum Lances; el coste de esta variante está por confirmar.'
-  },
-  'Venatari · Verutum Lances': {
-    status: 'uncertain',
-    options: [{points: 270}],
-    note: 'Coste genérico de Venatari Custodians. La tabla no distingue Kinetic Destroyers de Verutum Lances; el coste de esta variante está por confirmar.'
-  },
-  'Telemon Heavy Dreadnought': {options: [{points: 280}]},
-  'Contemptor-Galatus Dreadnought': {options: [{points: 220}]},
-  'Contemptor-Achillus Dreadnought': {options: [{points: 230}]},
-  'Allarus Custodians': {options: [{points: 180, models: 2}, {points: 270, models: 3}]},
-  'Pallas Grav-Attack': {options: [{points: 125}]},
-  'Coronus Grav-Carrier': {options: [{points: 225}]},
-  'Caladius Grav-Tank': {options: [{points: 250}]},
-  'Caladius Annihilator Grav-Tank': {
-    status: 'missing',
-    note: 'La tabla solo nombra Caladius Grav-Tank. No confirma el coste de la ficha Annihilator.'
-  },
-  'Knight-Centura': {
-    status: 'increase', delta: 5,
-    note: 'La tabla indica un incremento de +5 pts para otras unidades de Hermanas del Silencio, sin coste base ni desglose. El total de Knight-Centura está por confirmar.'
-  },
-  'Prosecutor Squad': {
-    options: [{points: 50, models: 4}],
-    note: 'Solo se indica el coste de 4 miniaturas. Los costes para otros tamaños de unidad están por confirmar.'
-  },
-  'Vigilator Squad': {
-    status: 'increase', delta: 5,
-    note: 'La tabla indica un incremento de +5 pts para otras unidades de Hermanas del Silencio, sin coste base ni desglose. El total de Vigilators está por confirmar.'
-  }
+  'Trajann Valoris': {options: [{points: [265, null, null]}]},
+  'Shield-Captain': {options: [
+    {label: 'Base', points: [180, 200, 200]},
+    {label: 'Con escudo', points: [205, 225, 225]}
+  ]},
+  'Shield-Captain (Allarus)': {options: [{points: [185, 205, 205]}]},
+  'Shield-Captain (Dawneagle Jetbike)': {options: [{points: [205, 225, 225]}]},
+  'Blade Champion': {options: [{points: [175, 175, 195]}]},
+  'Sentinel Guard Sodality': {options: [{models: 3, label: 'Escudos', points: [240, 240, 270]}]},
+  'Custodian Guard': {options: [{models: 3, label: 'Lanzas', points: [240, 240, 270]}]},
+  'Custodian Wardens': {options: [
+    {models: 2, points: [200, 230, 230]},
+    {models: 3, points: [295, 325, 325]}
+  ]},
+  'Allarus Custodians': {options: [
+    {models: 2, points: [180, 180, 210]},
+    {models: 3, points: [270, 270, 300]}
+  ]},
+  'Aquilon Terminators · Gauntlets': {options: [{models: 3, points: [285, 285, 315]}]},
+  'Aquilon Terminators · Talons': {options: [{models: 3, points: [275, 275, 305]}]},
+  'Venatari · Kinetic Destroyers': {options: [{models: 3, label: 'Pistolas', points: [255, 255, 280]}]},
+  'Venatari · Verutum Lances': {options: [{models: 3, label: 'Lanzas', points: [270, 270, 300]}]},
+  'Telemon Heavy Dreadnought': {options: [{points: [280, 310, 310]}]},
+  'Contemptor-Galatus Dreadnought': {options: [{points: [220, 220, 250]}]},
+  'Contemptor-Achillus Dreadnought': {options: [{points: [230, 230, 260]}]},
+  'Vertus Praetors': {options: [
+    {models: 2, points: [220, 240, 240]},
+    {models: 3, points: [330, 350, 350]}
+  ]},
+  'Gyrfalcon Jetbike Sodality': {options: [{models: 2, points: [260, 280, 280]}]},
+  'Pallas Grav-Attack': {options: [{points: [135, 135, 135]}]},
+  'Coronus Grav-Carrier': {options: [{points: [225, 225, 245]}]},
+  'Caladius Grav-Tank': {options: [{points: [230, 230, 260]}]},
+  'Caladius Annihilator Grav-Tank': {options: [{points: [250, 250, 280]}]},
+  'Knight-Centura': {options: [{points: [55, 55, 55]}]},
+  'Prosecutor Squad': {options: [
+    {models: 4, points: [45, 45, 45]},
+    {models: 5, points: [50, 50, 50]},
+    {models: 9, points: [80, 80, 80]},
+    {models: 10, points: [90, 90, 90]}
+  ]},
+  'Vigilator Squad': {options: [
+    {models: 4, points: [50, 50, 50]},
+    {models: 5, points: [55, 55, 55]},
+    {models: 9, points: [90, 90, 90]},
+    {models: 10, points: [100, 100, 100]}
+  ]},
+  'Witchseekers': {options: [
+    {models: 4, points: [55, 55, 55]},
+    {models: 5, points: [60, 60, 60]},
+    {models: 9, points: [100, 100, 100]},
+    {models: 10, points: [110, 110, 110]}
+  ]},
+  'Psykana Rhino': {options: [{points: [70, 70, 70], fourthPlus: 80}]}
 };
+
+// Costes de unidades presentes en la tabla que aún no tienen ficha de reglas.
+const ADDITIONAL_POINT_UNITS = [
+  {name: 'Vertus Praetors', category: 'Montada'},
+  {name: 'Gyrfalcon Jetbike Sodality', category: 'Montada'},
+  {name: 'Witchseekers', category: 'Hermanas del Silencio'},
+  {name: 'Psykana Rhino', category: 'Hermanas del Silencio'}
+];
 
 function getUnitPoints(unit) {
   return UNIT_POINTS[unit.name] || {status: 'missing', note: 'Esta unidad no tiene coste indicado en la tabla facilitada.'};
 }
 
 function pointsSummary(points) {
-  if (points.status === 'missing') return 'Puntos por confirmar';
-  if (points.status === 'increase') return `+${points.delta} pts · incremento`;
-  return `${points.options.map(option => option.points).join(' / ')} pts`;
+  if (!points.options?.length) return 'Puntos por confirmar';
+  return `${points.options.map(option => option.points[0] == null ? 'N/A' : option.points[0]).join(' / ')} pts`;
 }
