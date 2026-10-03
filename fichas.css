@@ -10,10 +10,21 @@
 .points-heading{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 12px}
 .points-heading h3{font:600 22px 'Barlow Condensed',sans-serif;text-transform:uppercase;color:#f0d39e;margin:0}
 .points-heading>span{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#d6bc92}
-.points-options{display:flex;flex-wrap:wrap;gap:8px;margin:11px 0 0;padding:0;list-style:none}
-.points-options li{display:flex;flex-wrap:wrap;align-items:center;gap:8px 15px;flex:1 1 190px;padding:9px 12px;border:1px solid #544633;border-radius:3px;background:#1d1915}
-.points-options li span{font-size:12px;color:#d3c6b5}
-.points-options li strong{margin-left:auto;font-size:18px;color:#f6d9a7;white-space:nowrap;font-variant-numeric:tabular-nums}
+.points-table-wrap{overflow-x:auto;margin-top:11px;border:1px solid #544633;border-radius:3px}
+.points-table{width:100%;border-collapse:collapse;background:#1d1915;font-size:12px}
+.points-table caption{text-align:left;padding:8px 10px;color:#d3c6b5;background:#292117;font-size:11px}
+.points-table th,.points-table td{padding:9px 10px;border-top:1px solid #544633;text-align:right}
+.points-table thead th{color:#d6bc92;font-size:11px;white-space:nowrap}
+.points-table th:first-child{text-align:left;font-weight:500;color:#ded1bd}
+.points-table td{color:#f6d9a7;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.points-unit{font-size:10px;font-weight:400}
+.points-na{display:inline-block;max-width:70px;white-space:normal;color:#b9b1bd;font-size:10px;font-weight:400}
+.additional-points{margin-top:30px}
+.additional-points h2{font:600 28px 'Barlow Condensed',sans-serif;text-transform:uppercase;color:#ead7b4;margin:0 0 8px}
+.additional-points>p{font-size:12px;color:#aaa4ad;line-height:1.5}
+.additional-points-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+.additional-points-grid .sheet-points{margin-top:0;min-width:0}
+@media(max-width:650px){.additional-points-grid{grid-template-columns:1fr}.points-table th,.points-table td{padding:8px 6px}.points-table{font-size:11px}.points-table thead th{font-size:10px}}
 .points-pending{font-size:14px;color:#edcea0;margin:10px 0 0}
 .points-note{font-size:12px;line-height:1.5;color:#ded1bd;margin:10px 0 0}
 .points-source{font-size:10px;line-height:1.5;color:#c0b19c;margin:10px 0 0}
