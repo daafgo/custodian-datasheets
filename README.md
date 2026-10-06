@@ -39,6 +39,12 @@ El cálculo cuenta las copias de cada perfil en el orden de la lista, compartien
 
 Las listas se guardan automáticamente en `localStorage` en este navegador y origen. **Opciones de lista → Descargar copia JSON / Importar JSON** permite copiarlas entre dispositivos sin sobrescribir las existentes. Si el navegador impide guardar, aparece un aviso y sigue disponible la exportación. También puedes copiar o descargar la lista en texto.
 
+**Leader / Support:** en los personajes con estas habilidades puedes elegir una entrada concreta de tu lista. La selección es manual: las fotos no incluyen la tabla actual de unidades compatibles, por lo que debes comprobarla en el [Munitorum Field Manual](https://mfm.warhammer-community.com/en/adeptus-custodes). La app comprueba los vínculos dentro de la lista y permite como máximo un Leader y un Support por unidad, pero no valida la compatibilidad de los perfiles. Support sin unidad aparece como dato pendiente. Las habilidades se toman de las fotos: Knight-Centura tiene Support; el Shield-Captain en Dawneagle Jetbike fotografiado no tiene Leader, por lo que conserva su perfil independiente.
+
+Las tarjetas y fichas enlazan al personaje y a su unidad. Las asignaciones se conservan al guardar, duplicar e importar JSON. Quitar la unidad elimina sus vínculos, y Deshacer los recupera si el puesto sigue libre. Los puntos de cada entrada se suman una sola vez.
+
+**Texto para BCP:** abre **Opciones de lista → Copiar / exportar texto**, pulsa **Copiar texto** y pégalo en el campo Army List de tu evento. También puedes descargar un `.txt`. Incluye unidades, tamaños/variantes de la tabla, puntos, mejoras, Warlord, destacamentos, disposición y asignaciones de Leader/Support. No genera una selección completa de armas por miniatura: revisa el equipo y los requisitos del torneo antes de enviarla.
+
 **Modo partida** reúne las unidades y destacamentos de tu ejército. Abre una ficha y cambia de perfil con las flechas, el selector o las teclas izquierda/derecha. La ficha muestra el tamaño, coste, mejora y Warlord de la entrada seleccionada. En Perfiles puedes filtrar por cualquiera de tus listas guardadas, alternar tarjetas/vista compacta y añadir unidades a la lista activa. Los enlaces `fichas.html#unit=...` y `destacamentos.html#detachment=...` abren una ficha concreta.
 
 Los datos de reglas se comparten en `units-data.js` y `detachments-data.js`; el visor está en `profile-view.js` y el cálculo/guardado de listas en `army-lists.js`.

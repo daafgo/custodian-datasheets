@@ -6,7 +6,35 @@ const ArmyLists = (() => {
   const empty=()=>({version:1,activeListId:null,lists:[]});
   const catalog=()=>[...units,...ADDITIONAL_POINT_UNITS];
   const isCharacter=name=>/\bCHARACTER\b/.test(units.find(u=>u.name===name)?.keywords||'');
+  const attachmentRole=name=>{const core=units.find(u=>u.name===name)?.core||'';return /\bSupport\b/.test(core)?'Support':/\bLeader\b/.test(core)?'Leader':null;};
   const optionLabel=option=>[option.models?`${option.models} miniaturas`:'',option.label||''].filter(Boolean).join(' · ')||'Unidad';
+  const entryLabel=row=>`${row.name} · ${row.ordinal}ª unidad · ${optionLabel(row.option)}`;
+  function attachmentTargets(list,entryId){
+    const entry=list.units.find(u=>u.id===entryId),role=attachmentRole(entry?.name);
+    if(!role)return [];
+    return list.units.filter(target=>target.id!==entryId&&!isCharacter(target.name)&&!list.units.some(other=>other.id!==entryId&&other.attachedTo===target.id&&attachmentRole(other.name)===role));
+  }
+  function assignAttachment(list,entryId,targetId){
+    const entry=list.units.find(u=>u.id===entryId);
+    if(!entry)throw Error('El personaje no está en esta lista.');
+    if(!targetId){entry.attachedTo=null;return;}
+    if(!attachmentRole(entry.name))throw Error('Este perfil no tiene Leader ni Support.');
+    if(!attachmentTargets(list,entryId).some(u=>u.id===targetId))throw Error('Elige una unidad de esta lista con ese puesto libre.');
+    entry.attachedTo=targetId;
+  }
+  function removeUnit(list,entryId){
+    const index=list.units.findIndex(u=>u.id===entryId);if(index<0)return null;
+    const attachments=list.units.filter(u=>u.attachedTo===entryId).map(u=>u.id);
+    const unit=list.units.splice(index,1)[0];list.units.filter(u=>attachments.includes(u.id)).forEach(u=>u.attachedTo=null);
+    return {index,unit,attachments};
+  }
+  function restoreUnit(list,removed){
+    if(list.units.some(u=>u.id===removed.unit.id))return;
+    const unit={...removed.unit};
+    if(unit.attachedTo&&!attachmentTargets({...list,units:[...list.units,unit]},unit.id).some(u=>u.id===unit.attachedTo))unit.attachedTo=null;
+    list.units.splice(removed.index,0,unit);
+    removed.attachments.forEach(entryId=>{if(attachmentTargets(list,entryId).some(u=>u.id===unit.id))assignAttachment(list,entryId,unit.id);});
+  }
   function newList(name='Mi lista Custodes',pointsLimit=2000,dpLimit=3){return {id:id(),name,pointsLimit,dpLimit,forceDisposition:'',detachmentNames:[],units:[]};}
   function price(name,optionIndex,ordinal){const option=UNIT_POINTS[name]?.options[optionIndex];return ordinal<=3?option?.points[ordinal-1]??null:option?.fourthPlus??null;}
   function nextOrdinal(list,name){return list.units.filter(u=>u.name===name).length+1;}
@@ -17,11 +45,11 @@ const ArmyLists = (() => {
     if(price(name,optionIndex,ordinal)==null)throw Error(`La tabla no incluye coste para la ${ordinal}ª unidad de ${name}.`);
     const warlord=name==='Trajann Valoris'||(isCharacter(name)&&!list.units.some(u=>u.warlord));
     if(warlord)list.units.forEach(u=>u.warlord=false);
-    const entry={id:id(),name,optionIndex,enhancement:null,warlord};list.units.push(entry);return entry;
+    const entry={id:id(),name,optionIndex,enhancement:null,warlord,attachedTo:null};list.units.push(entry);return entry;
   }
   function enhancements(list){return list.detachmentNames.flatMap(name=>{const d=detachments.find(d=>d.name===name);return (d?.enhancements||[]).map(([name,text])=>({detachment:d.name,name,text,points:getEnhancementPoints(d.name,name)})).filter(e=>e.points!=null);});}
   function evaluate(list){
-    const copies=new Map(),seenEnhancements=new Set(),issues=[];
+    const copies=new Map(),seenEnhancements=new Set(),occupiedSlots=new Set(),issues=[];
     const rows=list.units.map(entry=>{
       const ordinal=(copies.get(entry.name)||0)+1;copies.set(entry.name,ordinal);
       const basePoints=price(entry.name,entry.optionIndex,ordinal),option=UNIT_POINTS[entry.name]?.options[entry.optionIndex];
@@ -33,6 +61,15 @@ const ArmyLists = (() => {
         if(seenEnhancements.has(key))issues.push(`La mejora ${entry.enhancement.name} está repetida.`);
         seenEnhancements.add(key);
         if(!list.detachmentNames.includes(entry.enhancement.detachment))issues.push(`${entry.enhancement.name} pertenece a un destacamento que no está seleccionado.`);
+      }
+      const role=attachmentRole(entry.name),target=list.units.find(u=>u.id===entry.attachedTo);
+      if(role==='Support'&&!entry.attachedTo)issues.push(`${entry.name} debe unirse a una unidad como Support.`);
+      if(entry.attachedTo){
+        if(!role)issues.push(`${entry.name} no tiene Leader ni Support.`);
+        if(!target||target.id===entry.id||isCharacter(target.name))issues.push(`La unidad asignada a ${entry.name} no es válida.`);
+        const slot=entry.attachedTo+'|'+role;
+        if(occupiedSlots.has(slot))issues.push(`Hay más de un ${role} asignado a ${target?.name||'la misma unidad'}.`);
+        occupiedSlots.add(slot);
       }
       return {...entry,ordinal,option,basePoints,enhancementPoints,total:basePoints==null||enhancementPoints==null?null:basePoints+enhancementPoints};
     });
@@ -62,9 +99,18 @@ const ArmyLists = (() => {
       const optionIndex=boundedNumber(entry.optionIndex,0,UNIT_POINTS[entry.name].options.length-1,'El tamaño/equipo');
       let enhancement=null;
       if(entry.enhancement){const e=entry.enhancement,d=detachments.find(d=>d.name===e.detachment);if(!d?.enhancements.some(([name])=>name===e.name))throw Error('El archivo contiene una mejora desconocida.');enhancement={detachment:e.detachment,name:e.name};}
-      return {id:typeof entry.id==='string'&&entry.id.length<100?entry.id:id(),name:entry.name,optionIndex,enhancement,warlord:!!entry.warlord&&isCharacter(entry.name)};
+      if(entry.attachedTo!=null&&(typeof entry.attachedTo!=='string'||!entry.attachedTo||entry.attachedTo.length>=100))throw Error('La asignación del personaje no es válida.');
+      return {id:typeof entry.id==='string'&&entry.id&&entry.id.length<100?entry.id:id(),name:entry.name,optionIndex,enhancement,warlord:!!entry.warlord&&isCharacter(entry.name),attachedTo:entry.attachedTo||null};
     });
     if(new Set(entries.map(e=>e.id)).size!==entries.length)throw Error('El archivo contiene identificadores de unidad repetidos.');
+    const slots=new Set();
+    for(const entry of entries){
+      if(!entry.attachedTo)continue;
+      const role=attachmentRole(entry.name),target=entries.find(u=>u.id===entry.attachedTo),slot=entry.attachedTo+'|'+role;
+      if(!role||!target||target.id===entry.id||isCharacter(target.name))throw Error('El archivo contiene una asignación de personaje no válida.');
+      if(slots.has(slot))throw Error(`El archivo asigna más de un ${role} a la misma unidad.`);
+      slots.add(slot);
+    }
     return {id:typeof raw.id==='string'&&raw.id.length<100?raw.id:id(),name:raw.name.trim().slice(0,120),pointsLimit:boundedNumber(raw.pointsLimit,100,10000,'El límite de puntos'),dpLimit:boundedNumber(raw.dpLimit,1,10,'El límite de DP'),forceDisposition,detachmentNames:[...new Set(raw.detachmentNames)],units:entries};
   }
   function parse(raw){
@@ -76,13 +122,13 @@ const ArmyLists = (() => {
   }
   function load(){try{const raw=localStorage.getItem(STORAGE_KEY);return {state:raw?parse(raw):empty(),error:null};}catch(error){return {state:empty(),error:'No se han podido cargar las listas de este navegador. Puedes importar una copia JSON.'};}}
   function save(state){localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}
-  function duplicate(list){const copy=validateList(list);copy.id=id();copy.name=`${list.name.slice(0,110)} (copia)`;copy.units.forEach(u=>u.id=id());return copy;}
+  function duplicate(list){const copy=validateList(list);copy.id=id();copy.name=`${list.name.slice(0,110)} (copia)`;const ids=new Map(copy.units.map(u=>[u.id,id()]));copy.units.forEach(u=>{u.id=ids.get(u.id);u.attachedTo=u.attachedTo?ids.get(u.attachedTo):null;});return copy;}
   function importLists(state,raw){const imported=parse(raw);if(!imported.lists.length)throw Error('El archivo no contiene listas.');if(state.lists.length+imported.lists.length>100)throw Error('Puedes guardar hasta 100 listas.');const lists=imported.lists.map(list=>{const copy=duplicate(list);copy.name=list.name;return copy;});state.lists.push(...lists);state.activeListId=lists[0].id;return lists.length;}
   function exportText(list){
     const result=evaluate(list),lines=[`${list.name} (${result.points}${result.complete?'':' + pendientes'} puntos)`,'Adeptus Custodes',`${list.detachmentNames.join(' + ')||'Sin destacamento'} (${result.dp}${result.dpComplete?'':' + pendientes'} / ${list.dpLimit} DP)`,list.forceDisposition||'Sin disposición de fuerza',`Límite: ${list.pointsLimit} puntos`,''];
-    result.rows.forEach(row=>{lines.push(`${row.name} (${row.total??'por confirmar'} puntos)`,`• ${row.ordinal}ª unidad · ${optionLabel(row.option)}`);if(row.warlord)lines.push('• Warlord');if(row.enhancement)lines.push(`• Mejora: ${row.enhancement.name} (${row.enhancementPoints??'por confirmar'} pts) · ${row.enhancement.detachment}`);lines.push('');});
+    result.rows.forEach(row=>{lines.push(`${row.name} (${row.total??'por confirmar'} puntos)`,`• ${row.ordinal}ª unidad · ${optionLabel(row.option)}`);if(row.warlord)lines.push('• Warlord');if(row.enhancement)lines.push(`• Mejora: ${row.enhancement.name} (${row.enhancementPoints??'por confirmar'} pts) · ${row.enhancement.detachment}`);if(row.attachedTo){const target=result.rows.find(u=>u.id===row.attachedTo);lines.push(`• Unido como ${attachmentRole(row.name)||'personaje'} a: ${target?entryLabel(target):'unidad pendiente'}`);}result.rows.filter(u=>u.attachedTo===row.id).forEach(u=>lines.push(`• ${attachmentRole(u.name)||'Personaje'}: ${entryLabel(u)}`));lines.push('');});
     if(result.issues.length)lines.push('Pendiente de revisar:',...result.issues.map(issue=>'• '+issue),'');
-    lines.push('Costes según la tabla confirmada del 03/10/2026. Revisa las restricciones de composición y equipo con las reglas.');return lines.join('\n');
+    lines.push('Costes según la tabla confirmada del 03/10/2026. Revisa las restricciones de composición, equipo y compatibilidad de Leader/Support con las reglas.');return lines.join('\n');
   }
-  return {STORAGE_KEY,dispositions,empty,newList,catalog,isCharacter,optionLabel,price,nextOrdinal,addUnit,enhancements,evaluate,load,save,parse,validateList,duplicate,importLists,exportText};
+  return {STORAGE_KEY,dispositions,empty,newList,catalog,isCharacter,attachmentRole,entryLabel,attachmentTargets,assignAttachment,removeUnit,restoreUnit,optionLabel,price,nextOrdinal,addUnit,enhancements,evaluate,load,save,parse,validateList,duplicate,importLists,exportText};
 })();

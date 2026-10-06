@@ -79,3 +79,71 @@ test('export text includes sizes, copy order, enhancements, Warlord and force se
   const text=run('ArmyLists.exportText(list)');
   for(const expected of ['Golden Host (235 puntos)','Shield-Captain (235 puntos)','1ª unidad · Con escudo','Warlord','Eagle’s Eye (30 pts)','3 / 3 DP','Priority Assets'])assert.ok(text.includes(expected),expected);
 });
+
+test('attachment roles follow photographed profiles, including Support and a solo jetbike captain',()=>{
+  const {run}=setup();
+  for(const name of ['Trajann Valoris','Shield-Captain','Shield-Captain (Allarus)','Blade Champion'])assert.equal(run(`ArmyLists.attachmentRole(${JSON.stringify(name)})`),'Leader');
+  assert.equal(run("ArmyLists.attachmentRole('Knight-Centura')"),'Support');
+  assert.equal(run("ArmyLists.attachmentRole('Shield-Captain (Dawneagle Jetbike)')"),null);
+  assert.equal(run("ArmyLists.attachmentRole('Custodian Wardens')"),null);
+});
+test('manual attachments use entry IDs, enforce slots and never change the point total',()=>{
+  const {run,json}=setup();
+  run("const captain=ArmyLists.addUnit(list,'Shield-Captain'),champion=ArmyLists.addUnit(list,'Blade Champion'),first=ArmyLists.addUnit(list,'Custodian Wardens'),second=ArmyLists.addUnit(list,'Custodian Wardens');const before=ArmyLists.evaluate(list).points;ArmyLists.assignAttachment(list,captain.id,second.id)");
+  assert.equal(run('ArmyLists.evaluate(list).points'),run('before'));
+  assert.deepEqual(json('ArmyLists.attachmentTargets(list,champion.id).map(u=>u.id)'),[run('first.id')]);
+  assert.throws(()=>run('ArmyLists.assignAttachment(list,champion.id,second.id)'),/puesto libre/);
+  assert.equal(run('champion.attachedTo'),null);
+  assert.throws(()=>run('ArmyLists.assignAttachment(list,captain.id,captain.id)'),/puesto libre/);
+  assert.throws(()=>run('ArmyLists.assignAttachment(list,captain.id,champion.id)'),/puesto libre/);
+  assert.throws(()=>run('ArmyLists.assignAttachment(list,first.id,second.id)'),/no tiene Leader/);
+  run('ArmyLists.assignAttachment(list,captain.id,first.id);ArmyLists.assignAttachment(list,champion.id,second.id)');
+  assert.equal(run('captain.attachedTo'),run('first.id'));
+  assert.equal(run('champion.attachedTo'),run('second.id'));
+  run('ArmyLists.assignAttachment(list,captain.id,null)');assert.equal(run('captain.attachedTo'),null);
+});
+test('Support needs a bodyguard and has an independent slot from Leader',()=>{
+  const {run,json}=setup();run("const support=ArmyLists.addUnit(list,'Knight-Centura'),leader=ArmyLists.addUnit(list,'Shield-Captain'),bodyguard=ArmyLists.addUnit(list,'Prosecutor Squad')");
+  assert.ok(json('ArmyLists.evaluate(list).issues').some(issue=>issue.includes('debe unirse')));
+  // Structural slots only: unit compatibility remains a manual rules check.
+  run('ArmyLists.assignAttachment(list,support.id,bodyguard.id);ArmyLists.assignAttachment(list,leader.id,bodyguard.id)');
+  assert.ok(!json('ArmyLists.evaluate(list).issues').some(issue=>issue.includes('debe unirse')||issue.includes('más de un')));
+  run("const other=ArmyLists.addUnit(list,'Knight-Centura')");assert.throws(()=>run('ArmyLists.assignAttachment(list,other.id,bodyguard.id)'),/puesto libre/);
+});
+test('remove and undo restore attachments without overwriting intervening assignments',()=>{
+  const {run,json}=setup();run("const captain=ArmyLists.addUnit(list,'Shield-Captain'),champion=ArmyLists.addUnit(list,'Blade Champion'),first=ArmyLists.addUnit(list,'Custodian Wardens'),second=ArmyLists.addUnit(list,'Custodian Wardens');ArmyLists.assignAttachment(list,captain.id,first.id);const removed=ArmyLists.removeUnit(list,first.id)");
+  assert.equal(run('captain.attachedTo'),null);assert.equal(run('ArmyLists.validateList(list).units.length'),3);
+  run('ArmyLists.restoreUnit(list,removed)');assert.equal(run('captain.attachedTo'),run('first.id'));
+  assert.deepEqual(json('list.units.map(u=>u.id)'),[run('captain.id'),run('champion.id'),run('first.id'),run('second.id')]);
+  run('const removedCaptain=ArmyLists.removeUnit(list,captain.id);ArmyLists.assignAttachment(list,champion.id,first.id);ArmyLists.restoreUnit(list,removedCaptain)');
+  assert.equal(run('captain.attachedTo'),run('first.id')); // Original object was removed; the restored entry is a fresh object.
+  assert.equal(run('list.units.find(u=>u.id===captain.id).attachedTo'),null);
+  assert.equal(run('champion.attachedTo'),run('first.id'));
+});
+test('save, duplicate and JSON import preserve internal attachments with new IDs',()=>{
+  const {run,json}=setup();run("const captain=ArmyLists.addUnit(list,'Shield-Captain'),wardens=ArmyLists.addUnit(list,'Custodian Wardens');ArmyLists.assignAttachment(list,captain.id,wardens.id);const state={version:1,activeListId:list.id,lists:[list]};ArmyLists.save(state);const reloaded=ArmyLists.load().state;const copy=ArmyLists.duplicate(list);ArmyLists.importLists(state,JSON.stringify(state))");
+  assert.deepEqual(json('reloaded'),json('{version:1,activeListId:list.id,lists:[list]}'));
+  assert.equal(run('copy.units[0].attachedTo'),run('copy.units[1].id'));
+  assert.notEqual(run('copy.units[0].attachedTo'),run('wardens.id'));
+  assert.equal(run('state.lists[1].units[0].attachedTo'),run('state.lists[1].units[1].id'));
+  run('copy.units[0].attachedTo=null');assert.equal(run('captain.attachedTo'),run('wardens.id'));
+});
+test('old backups load with empty attachments and invalid links fail import atomically',()=>{
+  const {run}=setup();run("ArmyLists.addUnit(list,'Shield-Captain');ArmyLists.addUnit(list,'Custodian Wardens');list.units.forEach(u=>delete u.attachedTo);const state={version:1,activeListId:list.id,lists:[list]};const old=ArmyLists.parse(JSON.stringify(state))");
+  assert.equal(run('old.lists[0].units[0].attachedTo'),null);
+  for(const target of ['missing',42,{}]){
+    run(`list.units[0].attachedTo=${JSON.stringify(target)}`);
+    assert.throws(()=>run('ArmyLists.importLists(state,JSON.stringify(state))'),/asignación/);
+    assert.equal(run('state.lists.length'),1);
+  }
+  run("list.units[0].attachedTo=null;const other=ArmyLists.addUnit(list,'Blade Champion');list.units[0].attachedTo=list.units[1].id;other.attachedTo=list.units[1].id");
+  assert.throws(()=>run('ArmyLists.validateList(list)'),/más de un Leader/);
+});
+test('text export identifies both ends of attachment and exact copy/size without double charging',()=>{
+  const {run}=setup();run("const captain=ArmyLists.addUnit(list,'Shield-Captain');ArmyLists.addUnit(list,'Custodian Wardens');const second=ArmyLists.addUnit(list,'Custodian Wardens',1);ArmyLists.assignAttachment(list,captain.id,second.id)");
+  const text=run('ArmyLists.exportText(list)');
+  assert.ok(text.includes('Golden Host (705 puntos)'));
+  assert.ok(text.includes('Unido como Leader a: Custodian Wardens · 2ª unidad · 3 miniaturas'));
+  assert.ok(text.includes('Leader: Shield-Captain · 1ª unidad · Base'));
+  assert.ok(text.includes('compatibilidad de Leader/Support'));
+});
