@@ -3,16 +3,22 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#111116">
   <title>Destacamentos · Archivo Custodes</title><link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="fichas.css"><link rel="stylesheet" href="destacamentos.css">
+  <link rel="stylesheet" href="nav.css">
 </head>
 <body>
-  <header class="topbar"><a class="brand" href="index.html"><span class="brand-mark">✦</span><span>ARCHIVO <b>CUSTODES</b></span></a><nav class="top-nav"><a href="fichas.html">Fichas</a><a class="active" href="destacamentos.html">Destacamentos</a><a href="index.html">Fotos + OCR</a></nav><div class="top-meta"><span class="live-dot"></span> Catálogo de consulta</div></header>
+  <header class="topbar"><a class="brand" href="index.html"><span class="brand-mark">✦</span><span>ARCHIVO <b>CUSTODES</b></span></a><nav class="top-nav" aria-label="Navegación principal"><a href="listas.html">Listas</a><a href="fichas.html">Perfiles</a><a href="destacamentos.html" class="active" aria-current="page">Destacamentos</a><a href="index.html">Fotos + OCR</a></nav><div class="top-meta"><span class="live-dot"></span> Catálogo de consulta</div></header>
   <main>
     <section class="intro"><div class="eyebrow">ADEPTUS CUSTODES <span>·</span> DESTACAMENTOS</div><h1>Doctrinas de <em>guerra</em></h1><p>Costes en DP, disposiciones de fuerza, reglas de destacamento, mejoras y estratagemas. Los resúmenes de reglas proceden de las páginas fotografiadas. Abre una ficha para ver las fotos y el OCR original.</p><div class="metrics"><strong id="detachmentCount"></strong><span>destacamentos</span><i></i><a class="source-link" href="index.html">Consultar las 27 fotos + OCR</a></div></section>
     <section class="workspace"><div class="controls"><label class="searchbox"><span aria-hidden="true">⌕</span><input id="detachmentSearch" type="search" placeholder="Buscar destacamento, disposición, mejora o estratagema…" autocomplete="off"><kbd>/</kbd></label><select id="detachmentKind" aria-label="Filtrar por grupo"><option value="all">Todos los grupos</option><option value="Shield Host">Shield Hosts</option><option value="Otros">Otros destacamentos</option></select></div><div class="results-line"><span id="detachmentResults"></span><span>SEGÚN LAS FOTOS FACILITADAS</span></div><div class="detachment-grid" id="detachmentGrid"></div><div class="empty" id="detachmentEmpty" hidden><span>⌕</span><b>No hay resultados</b><p>Prueba con otro nombre o regla.</p></div></section>
   </main>
   <footer><span>ARCHIVO PERSONAL · CUSTODES</span><span>Los resúmenes son una ayuda de consulta: contrasta el texto exacto con la foto fuente.</span></footer>
-  <dialog id="detachmentDialog" class="sheet-dialog detachment-dialog"><div class="sheet-scroll" id="detachmentContent"></div></dialog>
+  <dialog id="profileDialog" class="sheet-dialog detachment-dialog"><div class="sheet-scroll" id="profileContent"></div></dialog>
+  <script src="units-data.js"></script>
+  <script src="detachments-data.js"></script>
+  <script src="unit-points.js"></script>
   <script src="enhancement-points.js"></script>
+  <script src="army-lists.js"></script>
+  <script src="profile-view.js"></script>
   <script src="destacamentos.js"></script>
 </body>
 </html>

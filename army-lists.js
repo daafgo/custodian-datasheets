@@ -1,0 +1,88 @@
+/* List storage and point calculations shared by the builder and profile catalog. */
+const ArmyLists = (() => {
+  const STORAGE_KEY='custodes.army-lists.v1';
+  const dispositions=['Priority Assets','Purge the Foe','Take and Hold','Reconnaissance','Disruption'];
+  const id=()=>globalThis.crypto?.randomUUID?.()||`${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+  const empty=()=>({version:1,activeListId:null,lists:[]});
+  const catalog=()=>[...units,...ADDITIONAL_POINT_UNITS];
+  const isCharacter=name=>/\bCHARACTER\b/.test(units.find(u=>u.name===name)?.keywords||'');
+  const optionLabel=option=>[option.models?`${option.models} miniaturas`:'',option.label||''].filter(Boolean).join(' · ')||'Unidad';
+  function newList(name='Mi lista Custodes',pointsLimit=2000,dpLimit=3){return {id:id(),name,pointsLimit,dpLimit,forceDisposition:'',detachmentNames:[],units:[]};}
+  function price(name,optionIndex,ordinal){const option=UNIT_POINTS[name]?.options[optionIndex];return ordinal<=3?option?.points[ordinal-1]??null:option?.fourthPlus??null;}
+  function nextOrdinal(list,name){return list.units.filter(u=>u.name===name).length+1;}
+  function addUnit(list,name,optionIndex=0){
+    if(list.units.length>=300)throw Error('Esta lista ya contiene 300 unidades.');
+    if(!UNIT_POINTS[name]?.options[optionIndex])throw Error('Selecciona un tamaño o equipo de la tabla.');
+    const ordinal=nextOrdinal(list,name);
+    if(price(name,optionIndex,ordinal)==null)throw Error(`La tabla no incluye coste para la ${ordinal}ª unidad de ${name}.`);
+    const warlord=name==='Trajann Valoris'||(isCharacter(name)&&!list.units.some(u=>u.warlord));
+    if(warlord)list.units.forEach(u=>u.warlord=false);
+    const entry={id:id(),name,optionIndex,enhancement:null,warlord};list.units.push(entry);return entry;
+  }
+  function enhancements(list){return list.detachmentNames.flatMap(name=>{const d=detachments.find(d=>d.name===name);return (d?.enhancements||[]).map(([name,text])=>({detachment:d.name,name,text,points:getEnhancementPoints(d.name,name)})).filter(e=>e.points!=null);});}
+  function evaluate(list){
+    const copies=new Map(),seenEnhancements=new Set(),issues=[];
+    const rows=list.units.map(entry=>{
+      const ordinal=(copies.get(entry.name)||0)+1;copies.set(entry.name,ordinal);
+      const basePoints=price(entry.name,entry.optionIndex,ordinal),option=UNIT_POINTS[entry.name]?.options[entry.optionIndex];
+      const enhancementPoints=entry.enhancement?getEnhancementPoints(entry.enhancement.detachment,entry.enhancement.name):0;
+      if(basePoints==null)issues.push(`Falta el coste de la ${ordinal}ª unidad de ${entry.name}.`);
+      if(entry.enhancement){
+        const key=normalizePointsName(entry.enhancement.detachment)+'|'+normalizePointsName(entry.enhancement.name);
+        if(enhancementPoints==null)issues.push(`Falta el coste de ${entry.enhancement.name}.`);
+        if(seenEnhancements.has(key))issues.push(`La mejora ${entry.enhancement.name} está repetida.`);
+        seenEnhancements.add(key);
+        if(!list.detachmentNames.includes(entry.enhancement.detachment))issues.push(`${entry.enhancement.name} pertenece a un destacamento que no está seleccionado.`);
+      }
+      return {...entry,ordinal,option,basePoints,enhancementPoints,total:basePoints==null||enhancementPoints==null?null:basePoints+enhancementPoints};
+    });
+    const points=rows.reduce((sum,row)=>sum+(row.basePoints??0)+(row.enhancementPoints??0),0),complete=rows.every(row=>row.total!=null);
+    const selected=detachments.filter(d=>list.detachmentNames.includes(d.name));
+    const dp=selected.reduce((sum,d)=>sum+(d.costDP??0),0),dpComplete=selected.every(d=>d.costDP!=null);
+    if(points>list.pointsLimit)issues.push(`Superas el límite en ${points-list.pointsLimit} puntos.`);
+    if(dp>list.dpLimit)issues.push(`Superas el límite en ${dp-list.dpLimit} DP.`);
+    selected.filter(d=>d.costDP==null).forEach(d=>issues.push(`El coste en DP de ${d.name} está por confirmar.`));
+    if(!selected.length)issues.push('Selecciona al menos un destacamento.');
+    if(!list.forceDisposition)issues.push('Elige una disposición de fuerza.');
+    else selected.filter(d=>d.forceDispositions.length&&!d.forceDispositions.includes(list.forceDisposition)).forEach(d=>issues.push(`${d.name} no incluye ${list.forceDisposition} entre sus disposiciones.`));
+    if(list.units.length&&!list.units.some(u=>u.warlord))issues.push('Selecciona un Warlord.');
+    if(list.units.filter(u=>u.warlord).length>1)issues.push('Hay más de un Warlord.');
+    if(list.units.some(u=>u.name==='Trajann Valoris'&&!u.warlord))issues.push('Trajann Valoris debe ser el Warlord de tu lista.');
+    return {rows,points,complete,dp,dpComplete,issues};
+  }
+  function boundedNumber(value,min,max,label){if(!Number.isInteger(value)||value<min||value>max)throw Error(`${label} no es válido.`);return value;}
+  function validateList(raw){
+    if(!raw||typeof raw!=='object'||typeof raw.name!=='string'||!raw.name.trim())throw Error('La lista no tiene un nombre válido.');
+    if(!Array.isArray(raw.units)||raw.units.length>300||!Array.isArray(raw.detachmentNames))throw Error('Las unidades o los destacamentos no son válidos.');
+    if(raw.detachmentNames.some(name=>!detachments.some(d=>d.name===name)))throw Error('El archivo contiene un destacamento desconocido.');
+    const forceDisposition=raw.forceDisposition||'';
+    if(forceDisposition&&!dispositions.includes(forceDisposition))throw Error('La disposición de fuerza no es válida.');
+    const entries=raw.units.map(entry=>{
+      if(!entry||!UNIT_POINTS[entry.name])throw Error('El archivo contiene una unidad desconocida.');
+      const optionIndex=boundedNumber(entry.optionIndex,0,UNIT_POINTS[entry.name].options.length-1,'El tamaño/equipo');
+      let enhancement=null;
+      if(entry.enhancement){const e=entry.enhancement,d=detachments.find(d=>d.name===e.detachment);if(!d?.enhancements.some(([name])=>name===e.name))throw Error('El archivo contiene una mejora desconocida.');enhancement={detachment:e.detachment,name:e.name};}
+      return {id:typeof entry.id==='string'&&entry.id.length<100?entry.id:id(),name:entry.name,optionIndex,enhancement,warlord:!!entry.warlord&&isCharacter(entry.name)};
+    });
+    if(new Set(entries.map(e=>e.id)).size!==entries.length)throw Error('El archivo contiene identificadores de unidad repetidos.');
+    return {id:typeof raw.id==='string'&&raw.id.length<100?raw.id:id(),name:raw.name.trim().slice(0,120),pointsLimit:boundedNumber(raw.pointsLimit,100,10000,'El límite de puntos'),dpLimit:boundedNumber(raw.dpLimit,1,10,'El límite de DP'),forceDisposition,detachmentNames:[...new Set(raw.detachmentNames)],units:entries};
+  }
+  function parse(raw){
+    const data=typeof raw==='string'?JSON.parse(raw):raw;
+    if(data?.version!==1||!Array.isArray(data.lists)||data.lists.length>100)throw Error('El archivo no es una copia de listas compatible.');
+    const lists=data.lists.map(validateList);
+    if(new Set(lists.map(list=>list.id)).size!==lists.length)throw Error('El archivo contiene identificadores de lista repetidos.');
+    return {version:1,activeListId:lists.some(l=>l.id===data.activeListId)?data.activeListId:lists[0]?.id||null,lists};
+  }
+  function load(){try{const raw=localStorage.getItem(STORAGE_KEY);return {state:raw?parse(raw):empty(),error:null};}catch(error){return {state:empty(),error:'No se han podido cargar las listas de este navegador. Puedes importar una copia JSON.'};}}
+  function save(state){localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}
+  function duplicate(list){const copy=validateList(list);copy.id=id();copy.name=`${list.name.slice(0,110)} (copia)`;copy.units.forEach(u=>u.id=id());return copy;}
+  function importLists(state,raw){const imported=parse(raw);if(!imported.lists.length)throw Error('El archivo no contiene listas.');if(state.lists.length+imported.lists.length>100)throw Error('Puedes guardar hasta 100 listas.');const lists=imported.lists.map(list=>{const copy=duplicate(list);copy.name=list.name;return copy;});state.lists.push(...lists);state.activeListId=lists[0].id;return lists.length;}
+  function exportText(list){
+    const result=evaluate(list),lines=[`${list.name} (${result.points}${result.complete?'':' + pendientes'} puntos)`,'Adeptus Custodes',`${list.detachmentNames.join(' + ')||'Sin destacamento'} (${result.dp}${result.dpComplete?'':' + pendientes'} / ${list.dpLimit} DP)`,list.forceDisposition||'Sin disposición de fuerza',`Límite: ${list.pointsLimit} puntos`,''];
+    result.rows.forEach(row=>{lines.push(`${row.name} (${row.total??'por confirmar'} puntos)`,`• ${row.ordinal}ª unidad · ${optionLabel(row.option)}`);if(row.warlord)lines.push('• Warlord');if(row.enhancement)lines.push(`• Mejora: ${row.enhancement.name} (${row.enhancementPoints??'por confirmar'} pts) · ${row.enhancement.detachment}`);lines.push('');});
+    if(result.issues.length)lines.push('Pendiente de revisar:',...result.issues.map(issue=>'• '+issue),'');
+    lines.push('Costes según la tabla confirmada del 03/10/2026. Revisa las restricciones de composición y equipo con las reglas.');return lines.join('\n');
+  }
+  return {STORAGE_KEY,dispositions,empty,newList,catalog,isCharacter,optionLabel,price,nextOrdinal,addUnit,enhancements,evaluate,load,save,parse,validateList,duplicate,importLists,exportText};
+})();
